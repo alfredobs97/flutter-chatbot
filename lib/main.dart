@@ -1,7 +1,5 @@
-import 'package:dialogflow_flutter/dialogflowFlutter.dart';
-import 'package:dialogflow_flutter/googleAuth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_chatbot/service/dialogflow_cx.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,14 +34,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late DialogFlow dialogflow;
+  late DialogFlowCx dialogflow;
   @override
   initState() {
     super.initState();
-    AuthGoogle(fileJson: "assets/credentials.json").build().then((authGoogle) {
-      dialogflow = DialogFlow(authGoogle: authGoogle, language: "es");
-    });
-    ;
+    DialogFlowCx().init().then((instance) => dialogflow = instance);
   }
 
   Future<void> _save() async {
@@ -52,11 +47,13 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _chats.add(Chat(isMine: true, text: input));
     });
-    
+
+    _chatController.clear();
+
     final response = await dialogflow.detectIntent(input);
 
     setState(() {
-      _chats.add(Chat(isMine: false, text: response.queryResult?.fulfillmentText ?? ""));
+      _chats.add(Chat(isMine: false, text: response.queryResult.responseMessages.first.text?.text.first ?? ''));
     });
 
     _chatController.clear();
